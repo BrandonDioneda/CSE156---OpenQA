@@ -1,16 +1,8 @@
-from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
+import json
 
-def retrieve_context(query, k=1):
-    with open("data\Main\openbook.txt", "r", encoding="utf-8") as file:
-        lines = file.readlines()
-    documents = [line.strip() for line in lines]
-
-    embedder = SentenceTransformer('all-MiniLM-L6-v2')
-
-    doc_embeddings = embedder.encode(documents, convert_to_numpy=True)
-
+def retrieve_context(query, embedder, documents, doc_embeddings, k=1):
     dimension = doc_embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
     index.add(np.array(doc_embeddings))
@@ -19,3 +11,10 @@ def retrieve_context(query, k=1):
     _, indices = index.search(query_embedding, k)  # Retrieve top-k similar docs
     
     return [documents[i] for i in indices[0]]
+
+def read_jsonl(file_path):
+    data = []
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            data.append(json.loads(line.strip()))
+    return data
